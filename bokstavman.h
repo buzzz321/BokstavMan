@@ -19,9 +19,12 @@ public:
 private slots:
   void on_checkButton_clicked();
 
+  void on_lineEdit_returnPressed();
+
 private:
   Ui::BokstavMan *ui;
   BokstavController logic;
+  void checkAnswer();
 };
 
 #endif // BOKSTAVMAN_H

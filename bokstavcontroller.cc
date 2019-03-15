@@ -5,8 +5,10 @@
 
 #include <vector>
 BokstavController::BokstavController() {
-  long seed = std::chrono::system_clock::now().time_since_epoch().count();
-  generator.seed(seed);
+  unsigned long seed = (unsigned long)std::chrono::system_clock::now()
+                           .time_since_epoch()
+                           .count();
+  generator = std::default_random_engine(seed);
 }
 
 bool BokstavController::slurpFile(std::string filename) {
@@ -20,21 +22,39 @@ bool BokstavController::slurpFile(std::string filename) {
   ifs.getline(token, sizeof(token)); // read version number and discard for now
 
   while (ifs.good()) {
-    ifs.getline(token, sizeof(token), '\t'); // read letter for alfpabet
-    letter.push_back(token);
+    ifs.getline(token, sizeof(token), '\t'); // read letter for alphabet
+    QString letter(token);
+    if (letter == "") {
+      continue;
+    }
+    this->letter.push_back(letter);
     ifs.getline(token, sizeof(token)); // read abervation for letter
-    name.push_back(token);
-    std::cout << letter.back() << " " << name.back() << std::endl;
+    alpha[letter] = token;
+    // std::cout << letter.toStdString() << " " << token << std::endl;
   }
 
   return true;
 }
 
-std::string BokstavController::getRandomLetter() {
+QString BokstavController::getRandomLetter() {
 
   std::uniform_int_distribution<unsigned long> distribution(0,
-                                                            letter.size() - 1);
+                                                            alpha.size() - 1);
   unsigned long dice_roll = distribution(generator);
 
   return letter[dice_roll];
+}
+
+std::tuple<bool, QString> BokstavController::checkIfCorrect(QString letter,
+                                                            QString answer) {
+  auto found = alpha.find(letter);
+  auto end = alpha.cend();
+  if (found != end) {
+    if (found->second.toLower() == answer) {
+      return std::make_tuple(true, "");
+    }
+    return std::make_tuple(false, found->second);
+  }
+
+  return std::make_tuple(false, "Error");
 }
